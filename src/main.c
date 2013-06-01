@@ -5,8 +5,8 @@
 
 #include "resource_ids.auto.h"
 
-#define MY_UUID { 0xBE, 0x94, 0xEE, 0xE9, 0xB2, 0xAF, 0x47, 0xF5, 0x86, 0xC7, 0x5E, 0x44, 0xC2, 0xDA, 0x0F, 0xC5 }
-PBL_APP_INFO(MY_UUID, "Roboto Big", "Tom Svoboda", 2, 0, RESOURCE_ID_IMAGE_MENU_ICON, APP_INFO_WATCH_FACE);
+#define MY_UUID { 0x90, 0x0E, 0x3B, 0xD0, 0xA9, 0x75, 0x42, 0x99, 0xAE, 0x79, 0xE7, 0x9B, 0xC5, 0x24, 0x6E, 0x6F }
+PBL_APP_INFO(MY_UUID, "Roboto Big Animated", "Tom Svoboda", 1, 0, RESOURCE_ID_IMAGE_MENU_ICON, APP_INFO_WATCH_FACE);
 
 
 
@@ -191,7 +191,6 @@ void handle_init(AppContextRef ctx) {
 	
   resource_init_current_app(&APP_RESOURCES);
 	
-  seconds_init();
 
   // Avoids a blank screen on watch start.
   PblTm tick_time;

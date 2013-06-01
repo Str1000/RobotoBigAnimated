@@ -1,73 +1,52 @@
 #include "commons.h"
 #include "seconds.h"
 	
-Layer seconds_bar;
-
-#define NUMBER_OF_BOXES 11
-#define SECONDS_PADDING 5
-#define SECONDS_SPACE 3
-#define SECONDS_BOX 12
-bool show_box[NUMBER_OF_BOXES] = {false};
-//layers representing 5 second boxes
-Layer box_layer[NUMBER_OF_BOXES];
+const uint8_t NUMBER_OF_BOXES = 11;
+const uint8_t BOX_PADDING = 3;
+const uint8_t BOX_SPACE = 1;
+const uint8_t BOX_SIZE = 14;
+Layer box_layer; //Box to be animated
+PropertyAnimation box_anim; 
+const int AnimationTime = 150;
 	
-void display_box(struct Layer *l, GContext *ctx) {
-	uint8_t i = 0;
-	while(&box_layer[i] != l) { //to find out which box we are updating
-		i++;
-		if(i == NUMBER_OF_BOXES) {
-        graphics_context_set_fill_color(ctx, FRONT_COLOR);
-        graphics_fill_rect(ctx, GRect(0,0, SECONDS_BOX/2, SECONDS_BOX/2), 0, GCornerNone); //ERROR! shown by half square
-		return;
-		}
+void display_box(struct Layer *l, GContext *ctx) { //box_layer constantly shows a box
+	graphics_context_set_fill_color(ctx, FRONT_COLOR);
+	graphics_fill_rect(ctx, GRect(0,0,BOX_SIZE,BOX_SIZE), 0, GCornerNone);
+	;
+}
+
+void anim_box(int8_t box_position) { 
+	GRect from_frame = layer_get_frame(&box_layer); 
+	GRect to_frame = from_frame;
+	//adjusting original and upcoming layer frame
+	if(box_position == 0) { //box will slide down from above
+		from_frame.origin.y = -BOX_SIZE;
 	}
-	if (show_box[i]) {
-        graphics_context_set_fill_color(ctx, FRONT_COLOR);
-        graphics_fill_rect(ctx, GRect(0,0, SECONDS_BOX, SECONDS_BOX), 0, GCornerNone);
-    }
+	if(box_position == -1 ) { //for seconds 0-4 hides box under the screen
+		to_frame.origin.y = 169;
+	}
+	else { // for seconds 5-59 counts where to move the box
+		to_frame.origin.y = BOX_PADDING + box_position*(BOX_SIZE+BOX_SPACE);
+	}
+	
+	
+	property_animation_init_layer_frame(&box_anim, &box_layer, &from_frame, &to_frame);
+	animation_set_curve(&box_anim.animation, AnimationCurveEaseInOut );
+	animation_set_duration(&box_anim.animation, AnimationTime);
+	animation_schedule(&box_anim.animation);
 }
 
 void count_seconds(unsigned short seconds_passed) {
-	if (seconds_passed%5 != 0) {
-		return;
+	if (seconds_passed%5 == 0) { //animate every 5 seconds
+		anim_box(seconds_passed/5 - 1);
 	}
-	
-	short actual_box = seconds_passed/5 - 1;
-	if (actual_box == -1) { //when seconds are in range 0-4 all layers are cleaned up
-		for(uint8_t i=0; i<NUMBER_OF_BOXES; i++) {
-			show_box[i] = false;
-			layer_mark_dirty(&box_layer[i]);
-		}
-	}
-	else {
-		show_box[actual_box] = true;
-		layer_mark_dirty(&box_layer[actual_box]);
-	}
-}
-
-void display_seconds(struct Layer *l, GContext *ctx) {
-}
-
-
-void seconds_init() {
-	layer_init(&seconds_bar, GRect(2*WIDTH_IMAGE, 0, 
-								   144 - 2*WIDTH_IMAGE, 168));
-	layer_set_update_proc(&seconds_bar, &display_seconds);
-	layer_add_child(window_get_root_layer(&window), &seconds_bar);
-	layer_mark_dirty(&seconds_bar);
-	//initialising layers representing 5 second' box each (11 boxes = layers 0-10)
-	for(uint8_t i=0;i<NUMBER_OF_BOXES;i++) {
-		layer_init(&box_layer[i], GRect(SECONDS_PADDING, SECONDS_PADDING+ i*(SECONDS_SPACE+SECONDS_BOX), SECONDS_BOX, SECONDS_BOX));
-		layer_set_update_proc(&box_layer[i], &display_box);
-	} 
-	//finilised on first display with access to seconds var
 }
 
 void seconds_first_display(unsigned short seconds_passed) {
-	for(uint8_t i=0; i <= seconds_passed/5; i++) {
-		show_box[i] = true;	
-	}
-	for(uint8_t i=0;i<NUMBER_OF_BOXES;i++) { //finilising initialisation and automatic rendering by adding them as childs
-		layer_add_child(&seconds_bar, &box_layer[i]);
-	}
+	int8_t box_position = seconds_passed/5 - 1;
+	GRect box_frame = GRect(144-(BOX_PADDING + BOX_SIZE), -BOX_SIZE, BOX_SIZE, BOX_SIZE); //invisible
+	if(box_position > -1) {box_frame.origin.y = BOX_PADDING + box_position*(BOX_SPACE+BOX_SIZE);} //to relocate box if should be visible (seconds 5-59)
+	layer_init(&box_layer, box_frame);
+	layer_set_update_proc(&box_layer, &display_box);
+	layer_add_child(window_get_root_layer(&window), &box_layer);
 }
