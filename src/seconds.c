@@ -1,13 +1,13 @@
 #include "commons.h"
 #include "seconds.h"
 	
-const uint8_t NUMBER_OF_BOXES = 11;
-const uint8_t BOX_PADDING = 3;
-const uint8_t BOX_SPACE = 1;
+const uint8_t SECONDS_PER_TICK = 10;
+const uint8_t BOX_PADDING = 5;
+const uint8_t BOX_SPACE = 22;
 const uint8_t BOX_SIZE = 14;
 Layer box_layer; //Box to be animated
 PropertyAnimation box_anim; 
-const int AnimationTime = 150;
+const int AnimationTime = 200;
 	
 void display_box(struct Layer *l, GContext *ctx) { //box_layer constantly shows a box
 	graphics_context_set_fill_color(ctx, FRONT_COLOR);
@@ -37,13 +37,13 @@ void anim_box(int8_t box_position) {
 }
 
 void count_seconds(unsigned short seconds_passed) {
-	if (seconds_passed%5 == 0) { //animate every 5 seconds
-		anim_box(seconds_passed/5 - 1);
+	if (seconds_passed%SECONDS_PER_TICK == 0) { //animate every 5 seconds
+		anim_box( seconds_passed/SECONDS_PER_TICK - 1 );
 	}
 }
 
 void seconds_first_display(unsigned short seconds_passed) {
-	int8_t box_position = seconds_passed/5 - 1;
+	int8_t box_position = seconds_passed/SECONDS_PER_TICK - 1;
 	GRect box_frame = GRect(144-(BOX_PADDING + BOX_SIZE), -BOX_SIZE, BOX_SIZE, BOX_SIZE); //invisible
 	if(box_position > -1) {box_frame.origin.y = BOX_PADDING + box_position*(BOX_SPACE+BOX_SIZE);} //to relocate box if should be visible (seconds 5-59)
 	layer_init(&box_layer, box_frame);
