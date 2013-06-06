@@ -1,4 +1,4 @@
-RobotoBig
+RobotoBigAnimated
 =========
 
 Pebble watchface based on "Big time"
